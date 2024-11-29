@@ -16,7 +16,37 @@ import com.example.novacode.components.GameGrid
 import com.example.novacode.model.*
 import com.example.novacode.model.Direction
 import java.lang.Math
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
+// Add these functions at the top level
+private fun getNextPosition(currentPos: GridPosition, direction: Direction): GridPosition {
+    return when (direction) {
+        Direction.UP -> GridPosition(currentPos.x - 1, currentPos.y)
+        Direction.RIGHT -> GridPosition(currentPos.x, currentPos.y + 1)
+        Direction.DOWN -> GridPosition(currentPos.x + 1, currentPos.y)
+        Direction.LEFT -> GridPosition(currentPos.x, currentPos.y - 1)
+    }
+}
+
+private fun getNextDirection(currentDir: Direction, command: Command): Direction {
+    return when (command) {
+        Command.TURN_LEFT -> when (currentDir) {
+            Direction.UP -> Direction.LEFT
+            Direction.RIGHT -> Direction.UP
+            Direction.DOWN -> Direction.RIGHT
+            Direction.LEFT -> Direction.DOWN
+        }
+        Command.TURN_RIGHT -> when (currentDir) {
+            Direction.UP -> Direction.RIGHT
+            Direction.RIGHT -> Direction.DOWN
+            Direction.DOWN -> Direction.LEFT
+            Direction.LEFT -> Direction.UP
+        }
+        Command.MOVE_FORWARD -> currentDir
+    }
+}
 
 @Composable
 fun Level1Screen(navController: NavController) {
@@ -50,6 +80,51 @@ fun Level1Screen(navController: NavController) {
     var currentDirection by remember { mutableStateOf(level.initialDirection) }
     var commandSlots by remember { mutableStateOf(Array<Command?>(4) { null }) }
     var slotPositions by remember { mutableStateOf(mapOf<Int, SlotPosition>()) }
+    var isExecuting by remember { mutableStateOf(false) }
+    
+    // Add coroutine scope
+    val scope = rememberCoroutineScope()
+
+    // Add function to execute commands
+    fun executeCommands() {
+        if (isExecuting) return
+        isExecuting = true
+
+        // Get the non-null commands from slots
+        val commands = commandSlots.filterNotNull()
+        
+        // Reset position and direction
+        currentPosition = level.startPosition
+        currentDirection = level.initialDirection
+
+        // Execute each command with a delay
+        scope.launch {
+            commands.forEach { command ->
+                delay(500) // Wait half a second between commands
+                
+                when (command) {
+                    Command.MOVE_FORWARD -> {
+                        val nextPos = getNextPosition(currentPosition, currentDirection)
+                        // Check if the move is valid (within grid and on path)
+                        if (nextPos.x in level.grid.indices && 
+                            nextPos.y in level.grid[0].indices &&
+                            level.grid[nextPos.x][nextPos.y] != TileType.GRASS) {
+                            currentPosition = nextPos
+                        }
+                    }
+                    Command.TURN_LEFT, Command.TURN_RIGHT -> {
+                        currentDirection = getNextDirection(currentDirection, command)
+                    }
+                }
+            }
+            isExecuting = false
+
+            // Check if we reached the end
+            if (currentPosition == level.endPosition) {
+                // TODO: Show success message
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -162,8 +237,11 @@ fun Level1Screen(navController: NavController) {
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(onClick = { /* TODO */ }) {
-                    Text("Run")
+                Button(
+                    onClick = { executeCommands() },
+                    enabled = !isExecuting && commandSlots.any { it != null }
+                ) {
+                    Text(if (isExecuting) "Running..." else "Run")
                 }
                 Button(onClick = { navController.navigate("mainMenu") }) {
                     Text("Back")
