@@ -111,6 +111,9 @@ fun Level1Screen(navController: NavController) {
     var slotPositions by remember { mutableStateOf(mapOf<Int, SlotPosition>()) }
     var isExecuting by remember { mutableStateOf(false) }
     var isMoving by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var showFailureDialog by remember { mutableStateOf(false) }
+    var failureReason by remember { mutableStateOf("") }
     
     // Add coroutine scope
     val scope = rememberCoroutineScope()
@@ -121,27 +124,44 @@ fun Level1Screen(navController: NavController) {
         isExecuting = true
 
         val commands = commandSlots.filterNotNull()
-        currentPosition = level.startPosition
-
+        
         scope.launch {
             commands.forEach { command ->
                 isMoving = true
-                delay(500) // Wait half a second between commands
+                delay(500)
                 
                 val nextPos = getNextPosition(currentPosition, command)
+                println("Current position: $currentPosition")
+                println("Next position: $nextPos")
+                println("End position: ${level.endPosition}")
+                
                 if (nextPos.x in level.grid.indices && 
                     nextPos.y in level.grid[0].indices &&
                     level.grid[nextPos.x][nextPos.y] != TileType.GRASS) {
                     currentPosition = nextPos
+                    
+                    // Check if reached the end immediately after moving
+                    if (currentPosition == level.endPosition) {
+                        isMoving = false
+                        isExecuting = false
+                        showSuccessDialog = true
+                        return@launch
+                    }
+                } else {
+                    failureReason = if (level.grid[nextPos.x][nextPos.y] == TileType.GRASS) {
+                        "Oops! You can't move onto grass!"
+                    } else {
+                        "Oops! You can't move outside the grid!"
+                    }
+                    showFailureDialog = true
+                    isMoving = false
+                    isExecuting = false
+                    return@launch
                 }
                 
                 isMoving = false
             }
             isExecuting = false
-
-            if (currentPosition == level.endPosition) {
-                // TODO: Show success message
-            }
         }
     }
 
@@ -282,6 +302,44 @@ fun Level1Screen(navController: NavController) {
                 }
             }
         }
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            title = { Text("Success!") },
+            text = { Text("You've completed the level!") },
+            confirmButton = {
+                Button(onClick = {
+                    showSuccessDialog = false
+                    navController.navigate("level2")
+                }) {
+                    Text("Next Level")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showSuccessDialog = false }) {
+                    Text("Try Again")
+                }
+            }
+        )
+    }
+
+    if (showFailureDialog) {
+        AlertDialog(
+            onDismissRequest = { showFailureDialog = false },
+            title = { Text("Try Again") },
+            text = { Text(failureReason) },
+            confirmButton = {
+                Button(onClick = {
+                    showFailureDialog = false
+                    // Reset position
+                    currentPosition = level.startPosition
+                }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }
 
