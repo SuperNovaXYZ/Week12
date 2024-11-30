@@ -98,31 +98,25 @@ fun Level1Screen(navController: NavController) {
         if (isExecuting) return
         isExecuting = true
 
-        // Get the non-null commands from slots
         val commands = commandSlots.filterNotNull()
-        
-        // Reset position
         currentPosition = level.startPosition
 
-        // Execute each command with a delay
         scope.launch {
             commands.forEach { command ->
-                isMoving = true  // Start spinning
-                delay(500)
+                isMoving = true
+                delay(500) // Wait half a second between commands
                 
                 val nextPos = getNextPosition(currentPosition, command)
-                // Check if the move is valid (within grid and on path)
                 if (nextPos.x in level.grid.indices && 
                     nextPos.y in level.grid[0].indices &&
                     level.grid[nextPos.x][nextPos.y] != TileType.GRASS) {
                     currentPosition = nextPos
                 }
-                isMoving = false  // Stop spinning
-                delay(200)  // Small pause between moves
+                
+                isMoving = false
             }
             isExecuting = false
 
-            // Check if we reached the end
             if (currentPosition == level.endPosition) {
                 // TODO: Show success message
             }
