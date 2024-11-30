@@ -34,9 +34,10 @@ fun CommandBlock(
     ) {
         Icon(
             painter = when (command) {
-                Command.MOVE_FORWARD -> painterResource(R.drawable.ic_move_forward)
-                Command.TURN_LEFT -> painterResource(R.drawable.ic_turn_left)
-                Command.TURN_RIGHT -> painterResource(R.drawable.ic_turn_right)
+                Command.MOVE_UP -> painterResource(R.drawable.ic_move_up)
+                Command.MOVE_RIGHT -> painterResource(R.drawable.ic_move_right)
+                Command.MOVE_DOWN -> painterResource(R.drawable.ic_move_down)
+                Command.MOVE_LEFT -> painterResource(R.drawable.ic_move_left)
             },
             contentDescription = command.name,
             tint = MaterialTheme.colorScheme.primary,

@@ -17,9 +17,10 @@ enum class Direction {
 }
 
 enum class Command {
-    MOVE_FORWARD,
-    TURN_LEFT,
-    TURN_RIGHT
+    MOVE_UP,
+    MOVE_RIGHT,
+    MOVE_DOWN,
+    MOVE_LEFT
 }
 
 data class Level(

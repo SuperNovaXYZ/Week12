@@ -21,30 +21,36 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 
 // Add these functions at the top level
-private fun getNextPosition(currentPos: GridPosition, direction: Direction): GridPosition {
-    return when (direction) {
-        Direction.UP -> GridPosition(currentPos.x - 1, currentPos.y)
-        Direction.RIGHT -> GridPosition(currentPos.x, currentPos.y + 1)
-        Direction.DOWN -> GridPosition(currentPos.x + 1, currentPos.y)
-        Direction.LEFT -> GridPosition(currentPos.x, currentPos.y - 1)
+private fun getNextPosition(currentPos: GridPosition, command: Command): GridPosition {
+    return when (command) {
+        Command.MOVE_UP -> GridPosition(currentPos.x - 1, currentPos.y)
+        Command.MOVE_RIGHT -> GridPosition(currentPos.x, currentPos.y + 1)
+        Command.MOVE_DOWN -> GridPosition(currentPos.x + 1, currentPos.y)
+        Command.MOVE_LEFT -> GridPosition(currentPos.x, currentPos.y - 1)
     }
 }
 
 private fun getNextDirection(currentDir: Direction, command: Command): Direction {
     return when (command) {
-        Command.TURN_LEFT -> when (currentDir) {
-            Direction.UP -> Direction.LEFT
-            Direction.RIGHT -> Direction.UP
-            Direction.DOWN -> Direction.RIGHT
-            Direction.LEFT -> Direction.DOWN
-        }
-        Command.TURN_RIGHT -> when (currentDir) {
+        Command.MOVE_UP -> currentDir
+        Command.MOVE_RIGHT -> when (currentDir) {
             Direction.UP -> Direction.RIGHT
             Direction.RIGHT -> Direction.DOWN
             Direction.DOWN -> Direction.LEFT
             Direction.LEFT -> Direction.UP
         }
-        Command.MOVE_FORWARD -> currentDir
+        Command.MOVE_DOWN -> when (currentDir) {
+            Direction.UP -> Direction.DOWN
+            Direction.RIGHT -> Direction.UP
+            Direction.DOWN -> Direction.LEFT
+            Direction.LEFT -> Direction.RIGHT
+        }
+        Command.MOVE_LEFT -> when (currentDir) {
+            Direction.UP -> Direction.LEFT
+            Direction.RIGHT -> Direction.UP
+            Direction.DOWN -> Direction.RIGHT
+            Direction.LEFT -> Direction.DOWN
+        }
     }
 }
 
@@ -69,9 +75,10 @@ fun Level1Screen(navController: NavController) {
             endPosition = GridPosition(5, 6),
             initialDirection = Direction.RIGHT,
             availableCommands = listOf(
-                Command.MOVE_FORWARD,
-                Command.TURN_LEFT,
-                Command.TURN_RIGHT
+                Command.MOVE_UP,
+                Command.MOVE_RIGHT,
+                Command.MOVE_DOWN,
+                Command.MOVE_LEFT
             )
         )
     }
@@ -81,6 +88,7 @@ fun Level1Screen(navController: NavController) {
     var commandSlots by remember { mutableStateOf(Array<Command?>(4) { null }) }
     var slotPositions by remember { mutableStateOf(mapOf<Int, SlotPosition>()) }
     var isExecuting by remember { mutableStateOf(false) }
+    var isMoving by remember { mutableStateOf(false) }
     
     // Add coroutine scope
     val scope = rememberCoroutineScope()
@@ -93,29 +101,24 @@ fun Level1Screen(navController: NavController) {
         // Get the non-null commands from slots
         val commands = commandSlots.filterNotNull()
         
-        // Reset position and direction
+        // Reset position
         currentPosition = level.startPosition
-        currentDirection = level.initialDirection
 
         // Execute each command with a delay
         scope.launch {
             commands.forEach { command ->
-                delay(500) // Wait half a second between commands
+                isMoving = true  // Start spinning
+                delay(500)
                 
-                when (command) {
-                    Command.MOVE_FORWARD -> {
-                        val nextPos = getNextPosition(currentPosition, currentDirection)
-                        // Check if the move is valid (within grid and on path)
-                        if (nextPos.x in level.grid.indices && 
-                            nextPos.y in level.grid[0].indices &&
-                            level.grid[nextPos.x][nextPos.y] != TileType.GRASS) {
-                            currentPosition = nextPos
-                        }
-                    }
-                    Command.TURN_LEFT, Command.TURN_RIGHT -> {
-                        currentDirection = getNextDirection(currentDirection, command)
-                    }
+                val nextPos = getNextPosition(currentPosition, command)
+                // Check if the move is valid (within grid and on path)
+                if (nextPos.x in level.grid.indices && 
+                    nextPos.y in level.grid[0].indices &&
+                    level.grid[nextPos.x][nextPos.y] != TileType.GRASS) {
+                    currentPosition = nextPos
                 }
+                isMoving = false  // Stop spinning
+                delay(200)  // Small pause between moves
             }
             isExecuting = false
 
@@ -135,6 +138,7 @@ fun Level1Screen(navController: NavController) {
             grid = level.grid,
             currentPosition = currentPosition,
             currentDirection = currentDirection,
+            isMoving = isMoving,
             modifier = Modifier.fillMaxSize()
         )
         
@@ -243,6 +247,20 @@ fun Level1Screen(navController: NavController) {
                 ) {
                     Text(if (isExecuting) "Running..." else "Run")
                 }
+                
+                Button(
+                    onClick = { 
+                        // Reset command slots
+                        commandSlots = Array(4) { null }
+                        // Reset position to start
+                        currentPosition = level.startPosition
+                        currentDirection = level.initialDirection
+                    },
+                    enabled = !isExecuting && commandSlots.any { it != null }
+                ) {
+                    Text("Reset")
+                }
+                
                 Button(onClick = { navController.navigate("mainMenu") }) {
                     Text("Back")
                 }

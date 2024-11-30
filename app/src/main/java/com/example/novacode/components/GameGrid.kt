@@ -18,6 +18,7 @@ fun GameGrid(
     grid: Array<Array<TileType>>,
     currentPosition: GridPosition,
     currentDirection: Direction,
+    isMoving: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -66,6 +67,7 @@ fun GameGrid(
                             ) {
                                 PlayerCharacter(
                                     direction = currentDirection,
+                                    isMoving = isMoving,
                                     modifier = Modifier.size(48.dp)
                                 )
                             }
