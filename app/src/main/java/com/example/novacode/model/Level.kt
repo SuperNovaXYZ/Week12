@@ -28,7 +28,9 @@ data class Level(
     val startPosition: GridPosition,
     val endPosition: GridPosition,
     val initialDirection: Direction,
-    val availableCommands: List<Command>
+    val availableCommands: List<Command>,
+    val coinPositions: Set<GridPosition> = emptySet(),
+    val parScore: Int = 100
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -39,7 +41,9 @@ data class Level(
                 startPosition == other.startPosition &&
                 endPosition == other.endPosition &&
                 initialDirection == other.initialDirection &&
-                availableCommands == other.availableCommands
+                availableCommands == other.availableCommands &&
+                coinPositions == other.coinPositions &&
+                parScore == other.parScore
     }
 
     override fun hashCode(): Int {
@@ -48,6 +52,8 @@ data class Level(
         result = 31 * result + endPosition.hashCode()
         result = 31 * result + initialDirection.hashCode()
         result = 31 * result + availableCommands.hashCode()
+        result = 31 * result + coinPositions.hashCode()
+        result = 31 * result + parScore
         return result
     }
 }

@@ -3,9 +3,11 @@ package com.example.novacode.components
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -20,6 +22,8 @@ fun GameGrid(
     currentPosition: GridPosition,
     currentDirection: Direction,
     isMoving: Boolean = false,
+    coinPositions: Set<GridPosition> = emptySet(),
+    collectedCoins: Set<GridPosition> = emptySet(),
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -55,6 +59,19 @@ fun GameGrid(
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        // Coin layer
+                        val position = GridPosition(rowIndex, colIndex)
+                        if (coinPositions.contains(position) && !collectedCoins.contains(position)) {
+                            Image(
+                                painter = painterResource(R.drawable.coin),
+                                contentDescription = "Coin",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .padding(4.dp)
                             )
                         }
 

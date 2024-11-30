@@ -62,7 +62,7 @@ private fun getNextDirection(currentDir: Direction, command: Command): Direction
 fun Level1Screen(navController: NavController) {
     val context = LocalContext.current
     
-    // Start music when screen is shown
+    // Start music only when coming from non-game screens
     DisposableEffect(Unit) {
         val intent = Intent(context, MusicService::class.java).apply {
             action = "PLAY"
@@ -70,11 +70,13 @@ fun Level1Screen(navController: NavController) {
         context.startService(intent)
         
         onDispose {
-            // Stop music when leaving screen
-            val stopIntent = Intent(context, MusicService::class.java).apply {
-                action = "STOP"
+            // Only stop music when going back to menu, not when going to next level
+            if (navController.currentBackStackEntry?.destination?.route != "level2") {
+                val stopIntent = Intent(context, MusicService::class.java).apply {
+                    action = "STOP"
+                }
+                context.startService(stopIntent)
             }
-            context.startService(stopIntent)
         }
     }
 
@@ -114,16 +116,17 @@ fun Level1Screen(navController: NavController) {
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showFailureDialog by remember { mutableStateOf(false) }
     var failureReason by remember { mutableStateOf("") }
+    var score by remember { mutableStateOf(0) }
+    var collectedCoins by remember { mutableStateOf(setOf<GridPosition>()) }
     
-    // Add coroutine scope
     val scope = rememberCoroutineScope()
 
-    // Add function to execute commands
     fun executeCommands() {
         if (isExecuting) return
         isExecuting = true
-
+        
         val commands = commandSlots.filterNotNull()
+        val moveCount = commands.size
         
         scope.launch {
             commands.forEach { command ->
@@ -131,17 +134,24 @@ fun Level1Screen(navController: NavController) {
                 delay(500)
                 
                 val nextPos = getNextPosition(currentPosition, command)
-                println("Current position: $currentPosition")
-                println("Next position: $nextPos")
-                println("End position: ${level.endPosition}")
                 
                 if (nextPos.x in level.grid.indices && 
                     nextPos.y in level.grid[0].indices &&
                     level.grid[nextPos.x][nextPos.y] != TileType.GRASS) {
                     currentPosition = nextPos
                     
-                    // Check if reached the end immediately after moving
+                    // Check for coin collection
+                    if (level.coinPositions.contains(currentPosition) && 
+                        !collectedCoins.contains(currentPosition)) {
+                        collectedCoins = collectedCoins + currentPosition
+                        score += 10 // Add 10 points per coin
+                    }
+                    
                     if (currentPosition == level.endPosition) {
+                        // Calculate final score
+                        val finalScore = score + level.parScore - (moveCount * 5) // Subtract 5 points per move
+                        score = maxOf(0, finalScore) // Don't allow negative scores
+                        
                         isMoving = false
                         isExecuting = false
                         showSuccessDialog = true
@@ -297,7 +307,14 @@ fun Level1Screen(navController: NavController) {
                     Text("Reset")
                 }
                 
-                Button(onClick = { navController.navigate("mainMenu") }) {
+                Button(onClick = { 
+                    // Stop music only when going back to menu
+                    val stopIntent = Intent(context, MusicService::class.java).apply {
+                        action = "STOP"
+                    }
+                    context.startService(stopIntent)
+                    navController.navigate("mainMenu") 
+                }) {
                     Text("Back")
                 }
             }
@@ -307,8 +324,14 @@ fun Level1Screen(navController: NavController) {
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
-            title = { Text("Success!") },
-            text = { Text("You've completed the level!") },
+            title = { Text("Level Complete!") },
+            text = { 
+                Column {
+                    Text("You've completed the level!")
+                    Text("Score: $score")
+                    Text("Coins collected: ${collectedCoins.size}/${level.coinPositions.size}")
+                }
+            },
             confirmButton = {
                 Button(onClick = {
                     showSuccessDialog = false
@@ -345,34 +368,305 @@ fun Level1Screen(navController: NavController) {
 
 @Composable
 fun Level2Screen(navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Level 2", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("mainMenu") }) {
-            Text("Back to Menu")
+    val context = LocalContext.current
+    
+    // Remove the DisposableEffect here since music should continue from Level1
+
+    val level = remember {
+        Level(
+            grid = Array(12) { row ->
+                Array(8) { col ->
+                    when {
+                        row == 9 && col == 1 -> TileType.START
+                        row == 2 && col == 6 -> TileType.END
+                        // Complex path with multiple turns
+                        (row == 9 && col in 1..4) ||  // Bottom horizontal
+                        (row in 5..9 && col == 4) ||  // Vertical up
+                        (row == 5 && col in 4..6) ||  // Top horizontal right
+                        (row in 2..5 && col == 6) ||  // Final vertical to end
+                        (row == 7 && col in 2..4) ||  // Middle platform
+                        (row in 7..8 && col == 2)     // Small vertical connection
+                        -> TileType.PATH
+                        else -> TileType.GRASS
+                    }
+                }
+            },
+            startPosition = GridPosition(9, 1),
+            endPosition = GridPosition(2, 6),
+            initialDirection = Direction.RIGHT,
+            availableCommands = listOf(
+                Command.MOVE_UP,
+                Command.MOVE_RIGHT,
+                Command.MOVE_DOWN,
+                Command.MOVE_LEFT
+            ),
+            coinPositions = setOf(
+                GridPosition(9, 2),  // Coin on bottom path
+                GridPosition(7, 4),  // Coin on middle platform
+                GridPosition(5, 5),  // Coin on top path
+                GridPosition(3, 6)   // Coin near end
+            ),
+            parScore = 150
+        )
+    }
+
+    var currentPosition by remember { mutableStateOf(level.startPosition) }
+    var currentDirection by remember { mutableStateOf(level.initialDirection) }
+    var commandSlots by remember { mutableStateOf(Array<Command?>(4) { null }) }
+    var slotPositions by remember { mutableStateOf(mapOf<Int, SlotPosition>()) }
+    var isExecuting by remember { mutableStateOf(false) }
+    var isMoving by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var showFailureDialog by remember { mutableStateOf(false) }
+    var failureReason by remember { mutableStateOf("") }
+    var score by remember { mutableStateOf(0) }
+    var collectedCoins by remember { mutableStateOf(setOf<GridPosition>()) }
+    
+    val scope = rememberCoroutineScope()
+
+    fun executeCommands() {
+        if (isExecuting) return
+        isExecuting = true
+        
+        val commands = commandSlots.filterNotNull()
+        val moveCount = commands.size
+        
+        scope.launch {
+            commands.forEach { command ->
+                isMoving = true
+                delay(500)
+                
+                val nextPos = getNextPosition(currentPosition, command)
+                
+                if (nextPos.x in level.grid.indices && 
+                    nextPos.y in level.grid[0].indices &&
+                    level.grid[nextPos.x][nextPos.y] != TileType.GRASS) {
+                    currentPosition = nextPos
+                    
+                    // Check for coin collection
+                    if (level.coinPositions.contains(currentPosition) && 
+                        !collectedCoins.contains(currentPosition)) {
+                        collectedCoins = collectedCoins + currentPosition
+                        score += 10 // Add 10 points per coin
+                    }
+                    
+                    if (currentPosition == level.endPosition) {
+                        // Calculate final score
+                        val finalScore = score + level.parScore - (moveCount * 5) // Subtract 5 points per move
+                        score = maxOf(0, finalScore) // Don't allow negative scores
+                        
+                        isMoving = false
+                        isExecuting = false
+                        showSuccessDialog = true
+                        return@launch
+                    }
+                } else {
+                    failureReason = if (level.grid[nextPos.x][nextPos.y] == TileType.GRASS) {
+                        "Oops! You can't move onto grass!"
+                    } else {
+                        "Oops! You can't move outside the grid!"
+                    }
+                    showFailureDialog = true
+                    isMoving = false
+                    isExecuting = false
+                    return@launch
+                }
+                
+                isMoving = false
+            }
+            isExecuting = false
         }
     }
-}
 
-@Composable
-fun ParentDashboardScreen(navController: NavController) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Text("Parent Dashboard", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("mainMenu") }) {
-            Text("Back to Menu")
+        GameGrid(
+            grid = level.grid,
+            currentPosition = currentPosition,
+            currentDirection = currentDirection,
+            isMoving = isMoving,
+            coinPositions = level.coinPositions,
+            collectedCoins = collectedCoins,
+            modifier = Modifier.fillMaxSize()
+        )
+        
+        Column(modifier = Modifier.fillMaxSize()) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                tonalElevation = 2.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .height(60.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Empty command slots (left side)
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(4) { index ->
+                            CommandSlot(
+                                index = index,
+                                command = commandSlots[index],
+                                onSlotPositioned = { slotPosition ->
+                                    slotPositions = slotPositions + (index to slotPosition)
+                                },
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                                    .size(50.dp)
+                            )
+                        }
+                    }
+
+                    // Available commands (right side)
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        level.availableCommands.forEach { command ->
+                            DraggableCommandBlock(
+                                command = command,
+                                onDragEnd = { draggedCommand, offset ->
+                                    println("Drop position: $offset")
+                                    
+                                    val targetSlot = slotPositions.entries.minByOrNull { (_, slot) ->
+                                        val slotCenterX = (slot.bounds.left + slot.bounds.right) / 2
+                                        val slotCenterY = (slot.bounds.top + slot.bounds.bottom) / 2
+                                        val dx = offset.x - slotCenterX
+                                        val dy = offset.y - slotCenterY
+                                        dx * dx + dy * dy
+                                    }
+                                    
+                                    println("Closest slot: ${targetSlot?.key}, distance: ${
+                                        targetSlot?.let { (_, slot) ->
+                                            val dx = offset.x - (slot.bounds.left + slot.bounds.right) / 2
+                                            val dy = offset.y - (slot.bounds.top + slot.bounds.bottom) / 2
+                                            Math.sqrt((dx * dx + dy * dy).toDouble())
+                                        }
+                                    }")
+                                    
+                                    if (targetSlot != null) {
+                                        val (index, slot) = targetSlot
+                                        val dx = offset.x - (slot.bounds.left + slot.bounds.right) / 2
+                                        val dy = offset.y - (slot.bounds.top + slot.bounds.bottom) / 2
+                                        val distance = Math.sqrt((dx * dx + dy * dy).toDouble())
+                                        
+                                        if (distance < 100) {
+                                            val newSlots = commandSlots.clone()
+                                            newSlots[index] = draggedCommand
+                                            commandSlots = newSlots
+                                            println("Command ${draggedCommand.name} placed in slot $index")
+                                        } else {
+                                            println("Drop too far from slot center")
+                                        }
+                                    } else {
+                                        println("No slot found for position $offset")
+                                    }
+                                },
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                                    .size(50.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    onClick = { executeCommands() },
+                    enabled = !isExecuting && commandSlots.any { it != null }
+                ) {
+                    Text(if (isExecuting) "Running..." else "Run")
+                }
+                
+                Button(
+                    onClick = { 
+                        // Reset command slots
+                        commandSlots = Array(4) { null }
+                        // Reset position to start
+                        currentPosition = level.startPosition
+                        currentDirection = level.initialDirection
+                    },
+                    enabled = !isExecuting && commandSlots.any { it != null }
+                ) {
+                    Text("Reset")
+                }
+                
+                Button(onClick = { 
+                    // Stop music only when going back to menu
+                    val stopIntent = Intent(context, MusicService::class.java).apply {
+                        action = "STOP"
+                    }
+                    context.startService(stopIntent)
+                    navController.navigate("mainMenu") 
+                }) {
+                    Text("Back")
+                }
+            }
         }
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            title = { Text("Level Complete!") },
+            text = { 
+                Column {
+                    Text("You've completed the level!")
+                    Text("Score: $score")
+                    Text("Coins collected: ${collectedCoins.size}/${level.coinPositions.size}")
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    showSuccessDialog = false
+                    navController.navigate("level2")
+                }) {
+                    Text("Next Level")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showSuccessDialog = false }) {
+                    Text("Try Again")
+                }
+            }
+        )
+    }
+
+    if (showFailureDialog) {
+        AlertDialog(
+            onDismissRequest = { showFailureDialog = false },
+            title = { Text("Try Again") },
+            text = { Text(failureReason) },
+            confirmButton = {
+                Button(onClick = {
+                    showFailureDialog = false
+                    // Reset position
+                    currentPosition = level.startPosition
+                }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 } 

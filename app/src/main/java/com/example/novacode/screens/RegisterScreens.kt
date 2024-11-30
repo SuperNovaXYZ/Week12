@@ -7,9 +7,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.novacode.viewmodels.UserViewModel
 
 @Composable
 fun ParentRegisterScreen(navController: NavController) {
+    val viewModel: UserViewModel = viewModel()
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(viewModel.loginState) {
+        viewModel.loginState.collect { state ->
+            when (state) {
+                is UserViewModel.LoginState.Success -> {
+                    navController.navigate("parentLogin")
+                }
+                is UserViewModel.LoginState.Error -> {
+                    showError = true
+                    errorMessage = state.message
+                }
+                else -> {}
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -20,10 +45,6 @@ fun ParentRegisterScreen(navController: NavController) {
         Text("Create Parent Account", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
         
-        var username by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-        var email by remember { mutableStateOf("") }
-
         TextField(
             value = username,
             onValueChange = { username = it },
@@ -42,7 +63,18 @@ fun ParentRegisterScreen(navController: NavController) {
             label = { Text("Password") }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("parentLogin") }) {
+        
+        if (showError) {
+            Text(
+                errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        Button(onClick = { 
+            viewModel.register(username, password, true, email)
+        }) {
             Text("Register")
         }
         TextButton(onClick = { navController.navigate("parentLogin") }) {
@@ -53,6 +85,28 @@ fun ParentRegisterScreen(navController: NavController) {
 
 @Composable
 fun ChildRegisterScreen(navController: NavController) {
+    val viewModel: UserViewModel = viewModel()
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var parentEmail by remember { mutableStateOf("") }
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(viewModel.loginState) {
+        viewModel.loginState.collect { state ->
+            when (state) {
+                is UserViewModel.LoginState.Success -> {
+                    navController.navigate("childLogin")
+                }
+                is UserViewModel.LoginState.Error -> {
+                    showError = true
+                    errorMessage = state.message
+                }
+                else -> {}
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,10 +117,6 @@ fun ChildRegisterScreen(navController: NavController) {
         Text("Create Child Account", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
         
-        var username by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-        var parentEmail by remember { mutableStateOf("") }
-
         TextField(
             value = username,
             onValueChange = { username = it },
@@ -85,7 +135,18 @@ fun ChildRegisterScreen(navController: NavController) {
             label = { Text("Password") }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("childLogin") }) {
+        
+        if (showError) {
+            Text(
+                errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        Button(onClick = { 
+            viewModel.register(username, password, false, null, parentEmail)
+        }) {
             Text("Register")
         }
         TextButton(onClick = { navController.navigate("childLogin") }) {
