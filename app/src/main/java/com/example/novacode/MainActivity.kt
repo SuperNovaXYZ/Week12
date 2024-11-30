@@ -1,5 +1,6 @@
 package com.example.novacode
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,10 +14,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.novacode.ui.theme.NovaCodeTheme
 import com.example.novacode.screens.*
+import com.example.novacode.services.MusicService
 
 class MainActivity : ComponentActivity() {
+    private var musicServiceIntent: Intent? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Create and start music service
+        musicServiceIntent = Intent(this, MusicService::class.java)
+        startService(musicServiceIntent)
+        
         setContent {
             NovaCodeTheme {
                 Surface(
@@ -27,6 +36,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Stop music service when app is destroyed
+        musicServiceIntent?.let { stopService(it) }
     }
 }
 

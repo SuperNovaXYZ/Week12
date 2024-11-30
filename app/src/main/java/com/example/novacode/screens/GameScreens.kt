@@ -19,6 +19,10 @@ import java.lang.Math
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import android.content.Intent
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.LocalContext
+import com.example.novacode.services.MusicService
 
 // Add these functions at the top level
 private fun getNextPosition(currentPos: GridPosition, command: Command): GridPosition {
@@ -56,6 +60,24 @@ private fun getNextDirection(currentDir: Direction, command: Command): Direction
 
 @Composable
 fun Level1Screen(navController: NavController) {
+    val context = LocalContext.current
+    
+    // Start music when screen is shown
+    DisposableEffect(Unit) {
+        val intent = Intent(context, MusicService::class.java).apply {
+            action = "PLAY"
+        }
+        context.startService(intent)
+        
+        onDispose {
+            // Stop music when leaving screen
+            val stopIntent = Intent(context, MusicService::class.java).apply {
+                action = "STOP"
+            }
+            context.startService(stopIntent)
+        }
+    }
+
     val level = remember {
         Level(
             grid = Array(12) { row ->
