@@ -13,5 +13,5 @@ data class GameProgress(
     val gameId: Int,
     val completed: Boolean,
     val score: Int,
-    val timestamp: Long = System.currentTimeMillis()
-) 
+    val timestamp: Long = System.currentTimeMillis(),
+    )

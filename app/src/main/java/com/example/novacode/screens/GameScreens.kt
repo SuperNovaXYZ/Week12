@@ -13,10 +13,15 @@ import com.example.novacode.model.*
 import com.example.novacode.model.Direction
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
+import com.example.novacode.data.GameProgress
 import com.example.novacode.services.MusicService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.novacode.viewmodels.GameViewModel
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 
 // Move calculateSteps to top level
 private fun calculateSteps(start: GridPosition, end: GridPosition): List<GridPosition> {
@@ -41,7 +46,7 @@ private fun calculateSteps(start: GridPosition, end: GridPosition): List<GridPos
 }
 
 @Composable
-fun Level1Screen(navController: NavController) {
+fun Level1Screen(navController: NavController, gameViewModel: GameViewModel) {
     val context = LocalContext.current
     
     DisposableEffect(Unit) {
@@ -132,6 +137,17 @@ fun Level1Screen(navController: NavController) {
                 if (currentPos == level.endPosition) {
                     val finalScore = score + level.parScore - (moveCount * 5)
                     score = maxOf(0, finalScore)
+                    
+                    val progress = GameProgress(
+                        userId = "default_user",
+                        levelId = 1,
+                        gameId = 1,
+                        completed = true,
+                        score = score
+                    )
+                    
+                    gameViewModel.addProgress(progress)
+                    
                     isMoving = false
                     isExecuting = false
                     showSuccessDialog = true
@@ -351,10 +367,19 @@ fun Level1Screen(navController: NavController) {
 }
 
 @Composable
-fun Level2Screen(navController: NavController) {
+fun Level2Screen(navController: NavController, gameViewModel: GameViewModel) {
     val context = LocalContext.current
     
-    // Remove the DisposableEffect here since music should continue from Level1
+    DisposableEffect(Unit) {
+        onDispose {
+            if (navController.currentBackStackEntry?.destination?.route != "mainMenu") {
+                val stopIntent = Intent(context, MusicService::class.java).apply {
+                    action = "STOP"
+                }
+                context.startService(stopIntent)
+            }
+        }
+    }
 
     val level = remember {
         Level(
@@ -436,6 +461,19 @@ fun Level2Screen(navController: NavController) {
                 if (currentPos == level.endPosition) {
                     val finalScore = score + level.parScore - (moveCount * 5)
                     score = maxOf(0, finalScore)
+                    
+                    val progress = GameProgress(
+                        userId = "default_user",
+                        levelId = 2,
+                        gameId = 1,
+                        completed = true,
+                        score = score
+                    )
+                    
+                    scope.launch {
+                        gameViewModel.addProgress(progress)
+                    }
+                    
                     isMoving = false
                     isExecuting = false
                     showSuccessDialog = true
@@ -655,11 +693,9 @@ fun Level2Screen(navController: NavController) {
 }
 
 @Composable
-fun Level3Screen(navController: NavController) {
+fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
     val context = LocalContext.current
     
-    // Remove the DisposableEffect here since music should continue from Level2
-    // But add music stop when going back to menu
     DisposableEffect(Unit) {
         onDispose {
             if (navController.currentBackStackEntry?.destination?.route != "mainMenu") {
@@ -761,6 +797,19 @@ fun Level3Screen(navController: NavController) {
                 if (currentPos == level.endPosition) {
                     val finalScore = score + level.parScore - (moveCount * 5)
                     score = maxOf(0, finalScore)
+                    
+                    val progress = GameProgress(
+                        userId = "default_user",
+                        levelId = 3,
+                        gameId = 1,
+                        completed = true,
+                        score = score
+                    )
+                    
+                    scope.launch {
+                        gameViewModel.addProgress(progress)
+                    }
+                    
                     isMoving = false
                     isExecuting = false
                     showSuccessDialog = true

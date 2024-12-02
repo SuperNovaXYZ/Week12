@@ -15,6 +15,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.novacode.ui.theme.NovaCodeTheme
 import com.example.novacode.screens.*
 import com.example.novacode.services.MusicService
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.novacode.viewmodels.GameViewModel
 
 class MainActivity : ComponentActivity() {
     private var musicServiceIntent: Intent? = null
@@ -48,6 +51,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun NovaCodeApp() {
     val navController = rememberNavController()
+    val sharedViewModel: GameViewModel = viewModel()
     
     NavHost(navController = navController, startDestination = "welcome") {
         composable("welcome") { WelcomeScreen(navController) }
@@ -56,8 +60,9 @@ fun NovaCodeApp() {
         composable("parentRegister") { ParentRegisterScreen(navController) }
         composable("childRegister") { ChildRegisterScreen(navController) }
         composable("mainMenu") { MainMenuScreen(navController) }
-        composable("level1") { Level1Screen(navController) }
-        composable("level2") { Level2Screen(navController) }
-        composable("level3") { Level3Screen(navController) }
+        composable("level1") { Level1Screen(navController, sharedViewModel) }
+        composable("level2") { Level2Screen(navController, sharedViewModel) }
+        composable("level3") { Level3Screen(navController, sharedViewModel) }
+        composable("parentDashboard") { ParentDashboardScreen(navController, sharedViewModel) }
     }
 }
