@@ -27,7 +27,7 @@ fun PlayerCharacter(
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
                 animation = tween(
-                    durationMillis = 1000,
+                    durationMillis = 1500,
                     easing = LinearEasing
                 ),
                 repeatMode = RepeatMode.Restart

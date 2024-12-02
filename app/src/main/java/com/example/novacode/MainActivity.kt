@@ -58,5 +58,6 @@ fun NovaCodeApp() {
         composable("mainMenu") { MainMenuScreen(navController) }
         composable("level1") { Level1Screen(navController) }
         composable("level2") { Level2Screen(navController) }
+        composable("level3") { Level3Screen(navController) }
     }
 }

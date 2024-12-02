@@ -27,6 +27,10 @@ fun MainMenuScreen(navController: NavController) {
             Text("Level 2 (Hard)")
         }
         Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { navController.navigate("level3") }) {
+            Text("Level 3 (Expert)")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = { navController.navigate("parentDashboard") }) {
             Text("Parent Dashboard")
         }

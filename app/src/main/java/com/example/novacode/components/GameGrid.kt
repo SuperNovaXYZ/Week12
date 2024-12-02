@@ -2,8 +2,18 @@ package com.example.novacode.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,25 +64,80 @@ fun GameGrid(
                         
                         // Path layer - wood for the path
                         if (tile == TileType.PATH || tile == TileType.START || tile == TileType.END) {
-                            Image(
-                                painter = painterResource(R.drawable.wood),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            Box {
+                                Image(
+                                    painter = painterResource(R.drawable.wood),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                
+                                // Start marker
+                                if (tile == TileType.START) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(4.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = "Start",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .background(
+                                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                                                    shape = CircleShape
+                                                )
+                                                .padding(4.dp)
+                                        )
+                                    }
+                                }
+
+                                // End marker
+                                if (tile == TileType.END) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(4.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Flag,
+                                            contentDescription = "End",
+                                            tint = MaterialTheme.colorScheme.secondary,
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .background(
+                                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                                                    shape = CircleShape
+                                                )
+                                                .padding(4.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         // Coin layer
                         val position = GridPosition(rowIndex, colIndex)
                         if (coinPositions.contains(position) && !collectedCoins.contains(position)) {
-                            Image(
-                                painter = painterResource(R.drawable.coin),
-                                contentDescription = "Coin",
-                                contentScale = ContentScale.Fit,
+                            Box(
                                 modifier = Modifier
-                                    .size(32.dp)
-                                    .padding(4.dp)
-                            )
+                                    .fillMaxSize()
+                                    .offset(y = (-35).dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.coin),
+                                    contentDescription = "Coin",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .padding(4.dp)
+                                )
+                            }
                         }
 
                         // Player character

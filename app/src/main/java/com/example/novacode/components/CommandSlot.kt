@@ -22,6 +22,7 @@ fun CommandSlot(
     index: Int,
     command: Command?,
     onSlotPositioned: (SlotPosition) -> Unit,
+    onDragStart: (Command) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -34,7 +35,6 @@ fun CommandSlot(
             )
             .onGloballyPositioned { coordinates ->
                 val bounds = coordinates.boundsInWindow()
-                println("Slot $index bounds: $bounds")
                 onSlotPositioned(
                     SlotPosition(
                         index = index,
@@ -45,8 +45,10 @@ fun CommandSlot(
         contentAlignment = Alignment.Center
     ) {
         if (command != null) {
-            CommandBlock(
+            DraggableCommandBlock(
                 command = command,
+                onDragEnd = { _, _ -> /* Handle in parent */ },
+                onDragStart = { onDragStart(command) },
                 modifier = Modifier.fillMaxSize()
             )
         }

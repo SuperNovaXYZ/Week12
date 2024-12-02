@@ -18,6 +18,7 @@ import com.example.novacode.model.Command
 fun DraggableCommandBlock(
     command: Command,
     onDragEnd: (Command, Offset) -> Unit,
+    onDragStart: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var offsetX by remember { mutableStateOf(0f) }
@@ -34,8 +35,8 @@ fun DraggableCommandBlock(
             }
             .pointerInput(Unit) {
                 detectDragGestures(
+                    onDragStart = { onDragStart() },
                     onDragEnd = {
-                        // Calculate position relative to start position
                         val finalPosition = Offset(
                             startPosition.x + offsetX,
                             startPosition.y + offsetY
