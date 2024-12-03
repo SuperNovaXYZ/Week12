@@ -21,18 +21,26 @@ fun ParentDashboardScreen(navController: NavController, gameViewModel: GameViewM
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            "Parent Dashboard",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Parent Dashboard",
+                style = MaterialTheme.typography.headlineMedium
+            )
+            
+            Button(
+                onClick = { navController.navigate("mainMenu") }
+            ) {
+                Text("Back to Menu")
+            }
+        }
         
         // Debug info
-        Text(
-            "Number of progress entries: ${progressList.size}",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
         
         progressList.forEach { progress ->
             Text(
@@ -75,13 +83,6 @@ fun ParentDashboardScreen(navController: NavController, gameViewModel: GameViewM
                     }
                 }
             }
-        }
-        
-        Button(
-            onClick = { navController.navigate("mainMenu") },
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("Back to Menu")
         }
     }
 } 

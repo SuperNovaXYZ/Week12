@@ -36,123 +36,125 @@ fun GameGrid(
     collectedCoins: Set<GridPosition> = emptySet(),
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.SpaceEvenly
-    ) {
-        grid.forEachIndexed { rowIndex, row ->
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                row.forEachIndexed { colIndex, tile ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Base layer - always grass
-                        Image(
-                            painter = painterResource(R.drawable.grass),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        
-                        // Path layer - wood for the path
-                        if (tile == TileType.PATH || tile == TileType.START || tile == TileType.END) {
-                            Box {
-                                Image(
-                                    painter = painterResource(R.drawable.wood),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                                
-                                // Start marker
-                                if (tile == TileType.START) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(4.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.PlayArrow,
-                                            contentDescription = "Start",
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .background(
-                                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
-                                                    shape = CircleShape
-                                                )
-                                                .padding(4.dp)
-                                        )
-                                    }
-                                }
+    Box(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            grid.forEachIndexed { rowIndex, row ->
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    row.forEachIndexed { colIndex, tile ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Base layer - always grass
+                            Image(
+                                painter = painterResource(R.drawable.grass),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
 
-                                // End marker
-                                if (tile == TileType.END) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(4.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Flag,
-                                            contentDescription = "End",
-                                            tint = MaterialTheme.colorScheme.secondary,
+                            // Path layer - wood for the path
+                            if (tile == TileType.PATH || tile == TileType.START || tile == TileType.END) {
+                                Box {
+                                    Image(
+                                        painter = painterResource(R.drawable.wood),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+
+                                    // Start marker
+                                    if (tile == TileType.START) {
+                                        Box(
                                             modifier = Modifier
-                                                .size(32.dp)
-                                                .background(
-                                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
-                                                    shape = CircleShape
-                                                )
-                                                .padding(4.dp)
-                                        )
+                                                .fillMaxSize()
+                                                .padding(4.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.PlayArrow,
+                                                contentDescription = "Start",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .background(
+                                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                                                        shape = CircleShape
+                                                    )
+                                                    .padding(4.dp)
+                                            )
+                                        }
+                                    }
+
+                                    // End marker
+                                    if (tile == TileType.END) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(4.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Flag,
+                                                contentDescription = "End",
+                                                tint = MaterialTheme.colorScheme.secondary,
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .background(
+                                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                                                        shape = CircleShape
+                                                    )
+                                                    .padding(4.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        // Coin layer
-                        val position = GridPosition(rowIndex, colIndex)
-                        if (coinPositions.contains(position) && !collectedCoins.contains(position)) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .offset(y = (-35).dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.coin),
-                                    contentDescription = "Coin",
-                                    contentScale = ContentScale.Fit,
+                            // Coin layer
+                            val position = GridPosition(rowIndex, colIndex)
+                            if (coinPositions.contains(position) && !collectedCoins.contains(position)) {
+                                Box(
                                     modifier = Modifier
-                                        .size(32.dp)
-                                        .padding(4.dp)
-                                )
+                                        .fillMaxSize()
+                                        .offset(y = (-35).dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.coin),
+                                        contentDescription = "Coin",
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .padding(4.dp)
+                                    )
+                                }
                             }
-                        }
 
-                        // Player character
-                        if (currentPosition.x == rowIndex && currentPosition.y == colIndex) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .offset(y = (-35).dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                PlayerCharacter(
-                                    direction = currentDirection,
-                                    isMoving = isMoving,
-                                    modifier = Modifier.size(48.dp)
-                                )
+                            // Player character
+                            if (currentPosition.x == rowIndex && currentPosition.y == colIndex) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .offset(y = (-35).dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    PlayerCharacter(
+                                        direction = currentDirection,
+                                        isMoving = isMoving,
+                                        modifier = Modifier.size(48.dp)
+                                    )
+                                }
                             }
                         }
                     }

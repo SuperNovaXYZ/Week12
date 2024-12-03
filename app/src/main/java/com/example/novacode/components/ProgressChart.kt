@@ -30,19 +30,19 @@ fun ProgressChart(
                 color = Color.Blue
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(16.dp)
+                    .height(300.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
                 val width = size.width
                 val height = size.height
-                val maxScore = progressList.maxOfOrNull { it.score } ?: 100
+                val maxScore = progressList.maxOfOrNull { it.score }?.plus(50) ?: 150
                 
-                // Draw grid lines
+                // Draw grid lines with labels
                 for (i in 0..4) {
                     val y = height * (1 - i / 4f)
                     drawLine(
@@ -60,41 +60,52 @@ fun ProgressChart(
                     val points = progressList.map { it.score.toFloat() / maxScore }
                     
                     if (points.size == 1) {
-                        // If only one point, draw a dot
+                        // If only one point, draw a larger dot
                         val x = width / 2
                         val y = height * (1 - points[0])
                         drawCircle(
                             color = Color.Blue,
-                            radius = 4.dp.toPx(),
+                            radius = 6.dp.toPx(),
                             center = Offset(x, y)
                         )
                     } else {
-                        // Draw connected line for multiple points
+                        // Draw connected line with dots at each point
                         path.moveTo(0f, height * (1 - points.first()))
                         points.forEachIndexed { index, point ->
-                            path.lineTo(index * xStep, height * (1 - point))
+                            val x = index * xStep
+                            val y = height * (1 - point)
+                            path.lineTo(x, y)
+                            
+                            // Draw dots at each point
+                            drawCircle(
+                                color = Color.Blue,
+                                radius = 4.dp.toPx(),
+                                center = Offset(x, y)
+                            )
                         }
                         
                         drawPath(
                             path = path,
                             color = Color.Blue,
-                            style = Stroke(width = 3f)
+                            style = Stroke(width = 4f)
                         )
                     }
                 }
             }
             
+            Spacer(modifier = Modifier.height(16.dp))
+            
             // Level labels
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 progressList.forEach { progress ->
                     Text(
                         "Level ${progress.levelId}",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }

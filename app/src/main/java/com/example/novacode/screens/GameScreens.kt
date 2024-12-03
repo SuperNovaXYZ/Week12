@@ -23,7 +23,7 @@ import com.example.novacode.viewmodels.GameViewModel
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
 
-// Move calculateSteps to top level
+
 private fun calculateSteps(start: GridPosition, end: GridPosition): List<GridPosition> {
     val steps = mutableListOf<GridPosition>()
     var current = start
@@ -695,7 +695,7 @@ fun Level2Screen(navController: NavController, gameViewModel: GameViewModel) {
 @Composable
 fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
     val context = LocalContext.current
-    
+
     DisposableEffect(Unit) {
         onDispose {
             if (navController.currentBackStackEntry?.destination?.route != "mainMenu") {
@@ -713,38 +713,34 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                 Array(8) { col ->
                     when {
                         // Start position
-                        row == 10 && col == 1 -> TileType.START
+                        row == 9 && col == 1 -> TileType.START
                         // End position
-                        row == 1 && col == 6 -> TileType.END
-                        // Regular paths
-                        (row == 10 && col in 1..6) ||  // Bottom horizontal
-                        (row in 4..10 && col == 6) ||  // Right vertical
-                        (row == 4 && col in 2..6) ||   // Upper horizontal
-                        (row in 1..4 && col == 2) ||   // Left vertical to end
-                        (row == 1 && col in 2..6) ||   // Top path to end
-                        (row == 7 && col in 2..5) ||   // Middle horizontal
-                        (row in 4..7 && col == 2) ||   // Middle vertical
-                        (row in 2..9 && col == 4)      // Direct vertical path
+                        row == 2 && col == 6 -> TileType.END
+                        // Complex path with multiple turns and obstacles
+                        (row == 9 && col in 1..4) ||  // Bottom horizontal
+                        (row in 5..9 && col == 4) ||  // Right vertical up
+                        (row == 5 && col in 4..6) ||  // Upper horizontal right
+                        (row in 2..5 && col == 6) ||  // Final vertical to end
+                        (row == 7 && col in 2..4) ||  // Middle platform
+                        (row in 4..7 && col == 2)     // Left vertical connection
                         -> TileType.PATH
                         // Walls/Obstacles
-                        (row == 6 && col == 3) ||      // Block middle path
-                        (row == 8 && col == 5) ||      // Block direct path
-                        (row == 3 && col == 3)         // Block upper path
+                        (row == 6 && col == 3) ||     // Block middle path
+                        (row == 4 && col == 5)        // Block upper path
                         -> TileType.WALL
                         else -> TileType.GRASS
                     }
                 }
             },
-            startPosition = GridPosition(10, 1),
-            endPosition = GridPosition(1, 6),
+            startPosition = GridPosition(9, 1),
+            endPosition = GridPosition(2, 6),
             initialDirection = Direction.RIGHT,
             maxCommands = 8,
             coinPositions = setOf(
-                GridPosition(10, 3),  // Bottom path coin
-                GridPosition(7, 4),   // Middle path coin
-                GridPosition(4, 5),   // Upper path coin
-                GridPosition(2, 2),   // Near end coin
-                GridPosition(1, 4)    // Bonus coin near end
+                GridPosition(9, 3),   // Bottom path coin
+                GridPosition(7, 4),   // Right path coin
+                GridPosition(5, 5),   // Upper path coin
+                GridPosition(3, 6)    // Near end coin
             ),
             parScore = 200
         )
@@ -761,43 +757,43 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
     var failureReason by remember { mutableStateOf("") }
     var score by remember { mutableStateOf(0) }
     var collectedCoins by remember { mutableStateOf(setOf<GridPosition>()) }
-    
+
     val scope = rememberCoroutineScope()
 
     fun executeCommands() {
         if (isExecuting) return
         isExecuting = true
-        
+
         val commands = commandSlots.filterNotNull()
         val moveCount = commands.size
-        
+
         scope.launch {
             var currentPos = currentPosition
-            
+
             for (command in commands) {
                 isMoving = true
                 currentDirection = level.getDirectionFromCommand(command)
-                
+
                 val finalPos = level.moveUntilBlocked(currentPos, command)
                 val steps = calculateSteps(currentPos, finalPos)
-                
+
                 for (step in steps) {
                     currentPosition = step
                     delay(300)
-                    
-                    if (level.coinPositions.contains(currentPosition) && 
+
+                    if (level.coinPositions.contains(currentPosition) &&
                         !collectedCoins.contains(currentPosition)) {
                         collectedCoins = collectedCoins + currentPosition
                         score += 10
                     }
                 }
-                
+
                 currentPos = finalPos
-                
+
                 if (currentPos == level.endPosition) {
                     val finalScore = score + level.parScore - (moveCount * 5)
                     score = maxOf(0, finalScore)
-                    
+
                     val progress = GameProgress(
                         userId = "default_user",
                         levelId = 3,
@@ -805,21 +801,21 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                         completed = true,
                         score = score
                     )
-                    
+
                     scope.launch {
                         gameViewModel.addProgress(progress)
                     }
-                    
+
                     isMoving = false
                     isExecuting = false
                     showSuccessDialog = true
                     return@launch
                 }
-                
+
                 isMoving = false
                 delay(500)
             }
-            
+
             failureReason = "Didn't reach the goal! Try a different sequence."
             showFailureDialog = true
             isExecuting = false
@@ -831,16 +827,27 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        GameGrid(
-            grid = level.grid,
-            currentPosition = currentPosition,
-            currentDirection = currentDirection,
-            isMoving = isMoving,
-            coinPositions = level.coinPositions,
-            collectedCoins = collectedCoins,
-            modifier = Modifier.fillMaxSize()
-        )
-        
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Add spacer at top to push grid content down
+            Spacer(modifier = Modifier.height(90.dp))  // Increased from previous value
+            
+            Box(
+                modifier = Modifier
+                    .weight(1f)  // Take remaining space
+                    .fillMaxWidth()
+            ) {
+                GameGrid(
+                    grid = level.grid,
+                    currentPosition = currentPosition,
+                    currentDirection = currentDirection,
+                    isMoving = isMoving,
+                    coinPositions = level.coinPositions,
+                    collectedCoins = collectedCoins,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
         Column(modifier = Modifier.fillMaxSize()) {
             Surface(
                 modifier = Modifier
@@ -899,7 +906,7 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                                         val dy = offset.y - slotCenterY
                                         dx * dx + dy * dy
                                     }
-                                    
+
                                     if (targetSlot != null) {
                                         val (index, slot) = targetSlot
                                         val slotCenterX = (slot.bounds.left + slot.bounds.right) / 2
@@ -907,7 +914,7 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                                         val dx = offset.x - slotCenterX
                                         val dy = offset.y - slotCenterY
                                         val distance = Math.sqrt((dx * dx + dy * dy).toDouble())
-                                        
+
                                         if (distance < 200) {
                                             val newSlots = commandSlots.clone()
                                             newSlots[index] = draggedCommand
@@ -923,9 +930,9 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.weight(1f))
-            
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -938,9 +945,9 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                 ) {
                     Text(if (isExecuting) "Running..." else "Run")
                 }
-                
+
                 Button(
-                    onClick = { 
+                    onClick = {
                         commandSlots = Array(level.maxCommands) { null }
                         currentPosition = level.startPosition
                         currentDirection = level.initialDirection
@@ -949,13 +956,13 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                 ) {
                     Text("Reset")
                 }
-                
-                Button(onClick = { 
+
+                Button(onClick = {
                     val stopIntent = Intent(context, MusicService::class.java).apply {
                         action = "STOP"
                     }
                     context.startService(stopIntent)
-                    navController.navigate("mainMenu") 
+                    navController.navigate("mainMenu")
                 }) {
                     Text("Back")
                 }
@@ -967,14 +974,14 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
             title = { Text("Congratulations!") },
-            text = { 
+            text = {
                 Column {
                     Text("You've mastered the final level!")
                     Text("Score: $score")
                     Text("Coins collected: ${collectedCoins.size}/${level.coinPositions.size}")
                     if (score > level.parScore) {
-                        Text("Perfect! You beat the par score!", 
-                             color = MaterialTheme.colorScheme.primary)
+                        Text("Perfect! You beat the par score!",
+                            color = MaterialTheme.colorScheme.primary)
                     }
                 }
             },
@@ -987,7 +994,7 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                 }
             },
             dismissButton = {
-                Button(onClick = { 
+                Button(onClick = {
                     showSuccessDialog = false
                     currentPosition = level.startPosition
                     currentDirection = level.initialDirection
