@@ -24,11 +24,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Create and start music service
         musicServiceIntent = Intent(this, MusicService::class.java)
         startService(musicServiceIntent)
-        
+
         setContent {
             NovaCodeTheme {
                 Surface(
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 fun NovaCodeApp() {
     val navController = rememberNavController()
     val sharedViewModel: GameViewModel = viewModel()
-    
+
     NavHost(navController = navController, startDestination = "welcome") {
         composable("welcome") { WelcomeScreen(navController) }
         composable("parentLogin") { ParentLoginScreen(navController) }

@@ -716,7 +716,6 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
                         row == 9 && col == 1 -> TileType.START
                         // End position
                         row == 2 && col == 6 -> TileType.END
-                        // Complex path with multiple turns and obstacles
                         (row == 9 && col in 1..4) ||  // Bottom horizontal
                         (row in 5..9 && col == 4) ||  // Right vertical up
                         (row == 5 && col in 4..6) ||  // Upper horizontal right
@@ -737,10 +736,10 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
             initialDirection = Direction.RIGHT,
             maxCommands = 8,
             coinPositions = setOf(
-                GridPosition(9, 3),   // Bottom path coin
-                GridPosition(7, 4),   // Right path coin
-                GridPosition(5, 5),   // Upper path coin
-                GridPosition(3, 6)    // Near end coin
+                GridPosition(9, 3),
+                GridPosition(7, 4),
+                GridPosition(5, 5),
+                GridPosition(3, 6)
             ),
             parScore = 200
         )
@@ -828,12 +827,11 @@ fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Add spacer at top to push grid content down
-            Spacer(modifier = Modifier.height(90.dp))  // Increased from previous value
+            Spacer(modifier = Modifier.height(90.dp))
             
             Box(
                 modifier = Modifier
-                    .weight(1f)  // Take remaining space
+                    .weight(1f)
                     .fillMaxWidth()
             ) {
                 GameGrid(
