@@ -25,9 +25,19 @@ import kotlinx.coroutines.launch
 fun Level2Screen(navController: NavController, gameViewModel: GameViewModel) {
     val context = LocalContext.current
 
+    // Start music when entering Level 2
+    LaunchedEffect(Unit) {
+        val playIntent = Intent(context, MusicService::class.java).apply {
+            action = "PLAY"
+        }
+        context.startService(playIntent)
+    }
+
+    // Handle music when leaving Level 2
     DisposableEffect(Unit) {
         onDispose {
-            if (navController.currentBackStackEntry?.destination?.route != "mainMenu") {
+            // Only stop music if not going to Level 3 or MainMenu
+            if (navController.currentBackStackEntry?.destination?.route !in listOf("level3", "mainMenu")) {
                 val stopIntent = Intent(context, MusicService::class.java).apply {
                     action = "STOP"
                 }

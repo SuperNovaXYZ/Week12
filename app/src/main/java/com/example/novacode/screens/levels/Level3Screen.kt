@@ -19,6 +19,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,14 +53,22 @@ import kotlinx.coroutines.launch
 fun Level3Screen(navController: NavController, gameViewModel: GameViewModel) {
     val context = LocalContext.current
 
+    // Start music when entering Level 3
+    LaunchedEffect(Unit) {
+        val playIntent = Intent(context, MusicService::class.java).apply {
+            action = "PLAY"
+        }
+        context.startService(playIntent)
+    }
+
+    // Handle music when leaving Level 3
     DisposableEffect(Unit) {
         onDispose {
-            if (navController.currentBackStackEntry?.destination?.route != "mainMenu") {
-                val stopIntent = Intent(context, MusicService::class.java).apply {
-                    action = "STOP"
-                }
-                context.startService(stopIntent)
+            // Always stop music when leaving Level 3
+            val stopIntent = Intent(context, MusicService::class.java).apply {
+                action = "STOP"
             }
+            context.startService(stopIntent)
         }
     }
 

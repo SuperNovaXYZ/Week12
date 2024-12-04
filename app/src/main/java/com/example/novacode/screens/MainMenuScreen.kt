@@ -237,7 +237,7 @@ private fun FloatingClouds() {
 }
 
 // Extension function for bounce animation
-private fun Modifier.bounceEffect(): Modifier = composed {
+fun Modifier.bounceEffect(): Modifier = composed {
     var isAnimating by remember { mutableStateOf(true) }
     val scale by animateFloatAsState(
         targetValue = if (isAnimating) 1.1f else 1f,

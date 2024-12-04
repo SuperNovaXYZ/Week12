@@ -52,14 +52,19 @@ fun Level1Screen(navController: NavController, gameViewModel: GameViewModel) {
 
     val context = LocalContext.current
 
-    DisposableEffect(Unit) {
-        val intent = Intent(context, MusicService::class.java).apply {
+    // Start music when entering Level 1
+    LaunchedEffect(Unit) {
+        val playIntent = Intent(context, MusicService::class.java).apply {
             action = "PLAY"
         }
-        context.startService(intent)
+        context.startService(playIntent)
+    }
 
+    // Handle music when leaving Level 1
+    DisposableEffect(Unit) {
         onDispose {
-            if (navController.currentBackStackEntry?.destination?.route != "level2") {
+            // Only stop music if not going to Level 2 or MainMenu
+            if (navController.currentBackStackEntry?.destination?.route !in listOf("level2", "mainMenu")) {
                 val stopIntent = Intent(context, MusicService::class.java).apply {
                     action = "STOP"
                 }
@@ -177,7 +182,9 @@ fun Level1Screen(navController: NavController, gameViewModel: GameViewModel) {
             isMoving = isMoving,
             coinPositions = level.coinPositions,
             collectedCoins = collectedCoins,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth() // Ensure it fills the screen width
+                .fillMaxHeight() // Ensure it fills the screen height
         )
 
         Column(modifier = Modifier.fillMaxSize()) {
