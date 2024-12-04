@@ -1,19 +1,71 @@
 package com.example.novacode.viewmodels
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.novacode.data.AppDatabase
 import com.example.novacode.data.GameProgress
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import com.example.novacode.data.entities.GameProgressEntity
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
-class GameViewModel : ViewModel() {
-    private val _progress = MutableStateFlow<List<GameProgress>>(emptyList())
-    val progress: StateFlow<List<GameProgress>> = _progress
+class GameViewModel(application: Application) : AndroidViewModel(application) {
+    private val database = AppDatabase.getDatabase(application)
+    private val gameProgressDao = database.gameProgressDao()
+
+    // Convert Flow<List<GameProgressEntity>> to Flow<List<GameProgress>>
+    val progress: StateFlow<List<GameProgress>> = gameProgressDao.getAllProgress()
+        .map { entities ->
+            entities.map { entity ->
+                GameProgress(
+                    userId = entity.userId,
+                    levelId = entity.levelId,
+                    gameId = entity.gameId,
+                    completed = entity.completed,
+                    score = entity.score,
+                    timestamp = entity.timestamp
+                )
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    suspend fun shouldResetProgress(userId: String): Boolean {
+        val completedLevels = gameProgressDao.getCompletedLevelsCount(userId)
+        return completedLevels >= 3
+    }
 
     fun addProgress(newProgress: GameProgress) {
-        _progress.update { currentProgress ->
-            val updatedProgress = currentProgress + newProgress
-            updatedProgress.sortedBy { it.levelId }
+        viewModelScope.launch {
+            val entity = GameProgressEntity(
+                userId = newProgress.userId,
+                levelId = newProgress.levelId,
+                gameId = newProgress.gameId,
+                completed = newProgress.completed,
+                score = newProgress.score,
+                timestamp = newProgress.timestamp
+            )
+            gameProgressDao.insertProgress(entity)
+        }
+    }
+    
+    suspend fun resetProgress(userId: String) {
+        gameProgressDao.clearUserProgress(userId)
+    }
+
+    suspend fun getProgressForLevel(userId: String, levelId: Int): GameProgress? {
+        return gameProgressDao.getProgressForLevel(userId, levelId)?.let { entity ->
+            GameProgress(
+                userId = entity.userId,
+                levelId = entity.levelId,
+                gameId = entity.gameId,
+                completed = entity.completed,
+                score = entity.score,
+                timestamp = entity.timestamp
+            )
         }
     }
 } 

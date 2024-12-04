@@ -47,6 +47,34 @@ private fun calculateSteps(start: GridPosition, end: GridPosition): List<GridPos
 
 @Composable
 fun Level1Screen(navController: NavController, gameViewModel: GameViewModel) {
+    var showResetDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    
+    // Check if we need to reset on entering the level
+    LaunchedEffect(Unit) {
+        if (gameViewModel.shouldResetProgress("default_user")) {
+            showResetDialog = true
+        }
+    }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("New Round Starting") },
+            text = { Text("You've completed all levels! Starting a new round.") },
+            confirmButton = {
+                Button(onClick = {
+                    scope.launch {
+                        gameViewModel.resetProgress("default_user")
+                        showResetDialog = false
+                    }
+                }) {
+                    Text("Start New Round")
+                }
+            }
+        )
+    }
+
     val context = LocalContext.current
     
     DisposableEffect(Unit) {
@@ -102,8 +130,6 @@ fun Level1Screen(navController: NavController, gameViewModel: GameViewModel) {
     var score by remember { mutableStateOf(0) }
     var collectedCoins by remember { mutableStateOf(setOf<GridPosition>()) }
     
-    val scope = rememberCoroutineScope()
-
     fun executeCommands() {
         if (isExecuting) return
         isExecuting = true

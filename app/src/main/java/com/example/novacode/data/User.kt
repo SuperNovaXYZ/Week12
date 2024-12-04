@@ -4,7 +4,7 @@ data class User(
     val id: String,
     val username: String,
     val isParent: Boolean,
-    val parentId: String? = null // For child accounts, links to parent
+    val parentId: String? = null
 )
 
 data class GameProgress(
