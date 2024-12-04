@@ -10,6 +10,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -34,7 +36,7 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-
+import androidx.compose.ui.layout.*
 
 @Composable
 fun MainMenuScreen(navController: NavController) {
@@ -53,75 +55,85 @@ fun MainMenuScreen(navController: NavController) {
         // Floating clouds animation
         FloatingClouds()
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp) // Adds consistent spacing
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+            }
 
             // Title with bouncing animation
-            Text(
-                text = "NovaCode",
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    shadow = Shadow(
-                        color = Color.White,
-                        offset = Offset(2f, 2f),
-                        blurRadius = 3f
-                    )
-                ),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.bounceEffect()
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            // Level buttons with animations and decorations
-            LevelButton(
-                text = "Level 1: First Steps",
-                description = "Learn the basics!",
-                onClick = { navController.navigate("level1") },
-                icon = Icons.Filled.Star
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LevelButton(
-                text = "Level 2: Getting Harder",
-                description = "More challenges await!",
-                onClick = { navController.navigate("level2") },
-                icon = Icons.Filled.StarHalf
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LevelButton(
-                text = "Level 3: Expert Mode",
-                description = "Are you ready?",
-                onClick = { navController.navigate("level3") },
-                icon = Icons.Filled.Stars
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Parent dashboard button with different style
-            Button(
-                onClick = { navController.navigate("parentDashboard") },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ),
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .alpha(0.8f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp)
+            item {
+                Text(
+                    text = "NovaCode",
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        shadow = Shadow(
+                            color = Color.White,
+                            offset = Offset(2f, 2f),
+                            blurRadius = 3f
+                        )
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.bounceEffect()
                 )
-                Text("Parent Dashboard")
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            // Level buttons
+            item {
+                LevelButton(
+                    text = "Level 1: First Steps",
+                    description = "Learn the basics!",
+                    onClick = { navController.navigate("level1") },
+                    icon = Icons.Filled.StarHalf
+                )
+            }
+
+            item {
+                LevelButton(
+                    text = "Level 2: Getting Harder",
+                    description = "More challenges await!",
+                    onClick = { navController.navigate("level2") },
+                    icon = Icons.Filled.Star
+                )
+            }
+
+            item {
+                LevelButton(
+                    text = "Level 3: Expert Mode",
+                    description = "Are you ready?",
+                    onClick = { navController.navigate("level3") },
+                    icon = Icons.Filled.Stars
+                )
+            }
+
+            // Spacer to fill remaining space
+
+            // Parent dashboard button
+            item {
+                Button(
+                    onClick = { navController.navigate("parentDashboard") },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary, // A more prominent color
+                        contentColor = MaterialTheme.colorScheme.onPrimary  // Contrasting text/icon color
+                    ),
+                    modifier = Modifier
+                        .padding(top = 16.dp) // Adjust spacing from the level buttons
+                        .alpha(1.0f)          // Ensure full opacity
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("Parent Dashboard")
+                }
             }
         }
     }
