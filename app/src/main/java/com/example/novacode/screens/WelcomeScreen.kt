@@ -6,8 +6,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.novacode.components.SunAnimation
@@ -30,39 +32,78 @@ fun WelcomeScreen(navController: NavController) {
         SunAnimation(
             modifier = Modifier.fillMaxSize()
         )
-        
+
         // Content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                "Welcome to NovaCode",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            Button(
-                onClick = { navController.navigate("childLogin") },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4CAF50)
-                )
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 120.dp),
+                horizontalArrangement = Arrangement.spacedBy(120.dp)
             ) {
-                Text("I am a Child")
+                Text(
+                    "Nova",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = Color(0xFFFFC107),
+                    modifier = Modifier.scale(1.2f)
+                )
+                
+                Text(
+                    "Code",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = Color(0xFFFFC107),
+                    modifier = Modifier.scale(1.2f)
+                )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { navController.navigate("parentLogin") },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2196F3)
-                )
+
+            // Buttons
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("I am a Parent")
+                Button(
+                    onClick = { navController.navigate("childLogin") },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50)
+                    ),
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(56.dp)
+                ) {
+                    Text(
+                        "I am a Child",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+                
+                Button(
+                    onClick = { navController.navigate("parentLogin") },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2196F3)
+                    ),
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(56.dp)
+                ) {
+                    Text(
+                        "I am a Parent",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
             }
         }
     }
-} 
+} .
