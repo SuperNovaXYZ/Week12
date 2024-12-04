@@ -18,6 +18,9 @@ import com.example.novacode.services.MusicService
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.novacode.viewmodels.GameViewModel
+import com.example.novacode.screens.levels.Level1Screen
+import com.example.novacode.screens.levels.Level2Screen
+import com.example.novacode.screens.levels.Level3Screen
 
 class MainActivity : ComponentActivity() {
     private var musicServiceIntent: Intent? = null
