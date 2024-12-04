@@ -21,6 +21,9 @@ import com.example.novacode.viewmodels.GameViewModel
 import com.example.novacode.screens.levels.Level1Screen
 import com.example.novacode.screens.levels.Level2Screen
 import com.example.novacode.screens.levels.Level3Screen
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.platform.LocalConfiguration
 
 class MainActivity : ComponentActivity() {
     private var musicServiceIntent: Intent? = null
