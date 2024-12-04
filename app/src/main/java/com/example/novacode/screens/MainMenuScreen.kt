@@ -135,6 +135,25 @@ fun MainMenuScreen(navController: NavController) {
                     Text("Parent Dashboard")
                 }
             }
+            item {
+                Button(
+                    onClick = { navController.navigate("welcome") },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary, // A more prominent color
+                        contentColor = MaterialTheme.colorScheme.onPrimary  // Contrasting text/icon color
+                    ),
+                    modifier = Modifier
+                        .padding(top = 16.dp) // Adjust spacing from the level buttons
+                        .alpha(1.0f)          // Ensure full opacity
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("Logout")
+                }
+            }
         }
     }
 }
