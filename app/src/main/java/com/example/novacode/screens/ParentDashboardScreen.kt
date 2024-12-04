@@ -1,6 +1,8 @@
 package com.example.novacode.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +17,8 @@ import com.example.novacode.viewmodels.GameViewModel
 @Composable
 fun ParentDashboardScreen(navController: NavController, gameViewModel: GameViewModel) {
     val progressList by gameViewModel.progress.collectAsState()
-    
+    var showLogDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -32,32 +35,37 @@ fun ParentDashboardScreen(navController: NavController, gameViewModel: GameViewM
                 "Parent Dashboard",
                 style = MaterialTheme.typography.headlineMedium
             )
-            
-            Button(
-                onClick = { navController.navigate("mainMenu") }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Back to Menu")
+                Button(onClick = { showLogDialog = true }) {
+                    Text("View Logs")
+                }
+                
+                Button(onClick = { navController.navigate("mainMenu") }) {
+                    Text("Back to Menu")
+                }
             }
         }
-        
+
         // Debug info
-        
         progressList.forEach { progress ->
             Text(
                 "Level ${progress.levelId}: Score ${progress.score}",
                 style = MaterialTheme.typography.bodySmall
             )
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         ProgressChart(
             progressList = progressList,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
         )
-        
+
         // Coin Collection Summary
         Card(
             modifier = Modifier
@@ -70,7 +78,7 @@ fun ParentDashboardScreen(navController: NavController, gameViewModel: GameViewM
                     "Level Progress",
                     style = MaterialTheme.typography.titleMedium
                 )
-                
+
                 progressList.forEach { progress ->
                     Row(
                         modifier = Modifier
@@ -84,5 +92,33 @@ fun ParentDashboardScreen(navController: NavController, gameViewModel: GameViewM
                 }
             }
         }
+    }
+
+    // Log Dialog
+    if (showLogDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogDialog = false },
+            title = { Text("Game Progress Logs") },
+            text = {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp)
+                ) {
+                    items(gameViewModel.getProgressLogs()) { logEntry ->
+                        Text(
+                            text = logEntry,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showLogDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 } 
