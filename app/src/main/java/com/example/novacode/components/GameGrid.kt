@@ -46,7 +46,7 @@ fun GameGrid(
         ),
         label = "positionX"
     )
-    
+
     val animatedY by animateFloatAsState(
         targetValue = currentPosition.y.toFloat(),
         animationSpec = tween(
