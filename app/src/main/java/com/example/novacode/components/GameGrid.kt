@@ -17,12 +17,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.novacode.R
 import com.example.novacode.model.*
 import com.example.novacode.model.Direction
@@ -38,28 +40,15 @@ fun GameGrid(
     collectedCoins: Set<GridPosition> = emptySet(),
     modifier: Modifier = Modifier
 ) {
-    val animatedX by animateFloatAsState(
-        targetValue = currentPosition.x.toFloat(),
+    // Combine X and Y animations into a single Offset animation
+    val animatedPosition by animateOffsetAsState(
+        targetValue = Offset(currentPosition.x.toFloat(), currentPosition.y.toFloat()),
         animationSpec = tween(
             durationMillis = 500,
             easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
         ),
-        label = "positionX"
+        label = "position"
     )
-
-    val animatedY by animateFloatAsState(
-        targetValue = currentPosition.y.toFloat(),
-        animationSpec = tween(
-            durationMillis = 500,
-            easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
-        ),
-        label = "positionY"
-    )
-
-    val characterKey = remember { mutableStateOf(0) }
-    LaunchedEffect(currentPosition) {
-        characterKey.value = characterKey.value + 1
-    }
 
     Box(modifier = modifier) {
         Column(
@@ -77,7 +66,8 @@ fun GameGrid(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .aspectRatio(1f),
+                                .aspectRatio(1f)
+                                .zIndex(if (rowIndex == currentPosition.x && colIndex == currentPosition.y) 1f else 0f),
                             contentAlignment = Alignment.Center
                         ) {
                             // Base layer - always grass
@@ -171,19 +161,18 @@ fun GameGrid(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
+                                        .offset(y = -35.dp)
                                         .offset(
-                                            x = ((animatedY - currentPosition.y) * 100).dp,
-                                            y = ((animatedX - currentPosition.x) * 100 - 35).dp
+                                            x = animatedPosition.x.dp,
+                                            y = animatedPosition.y.dp
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    key(characterKey.value) {
-                                        PlayerCharacter(
-                                            direction = currentDirection,
-                                            isMoving = isMoving,
-                                            modifier = Modifier.size(48.dp)
-                                        )
-                                    }
+                                    PlayerCharacter(
+                                        direction = currentDirection,
+                                        isMoving = isMoving,
+                                        modifier = Modifier.size(48.dp)
+                                    )
                                 }
                             }
                         }
