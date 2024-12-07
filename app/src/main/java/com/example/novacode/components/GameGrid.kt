@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.novacode.R
 import com.example.novacode.model.*
@@ -37,6 +38,24 @@ fun GameGrid(
     collectedCoins: Set<GridPosition> = emptySet(),
     modifier: Modifier = Modifier
 ) {
+    val animatedX by animateFloatAsState(
+        targetValue = currentPosition.x.toFloat(),
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
+        ),
+        label = "positionX"
+    )
+    
+    val animatedY by animateFloatAsState(
+        targetValue = currentPosition.y.toFloat(),
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
+        ),
+        label = "positionY"
+    )
+
     Box(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -143,10 +162,14 @@ fun GameGrid(
                             }
 
                             // Player character
-                            if (currentPosition.x == rowIndex && currentPosition.y == colIndex) {
+                            if (rowIndex == currentPosition.x && colIndex == currentPosition.y) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
+                                        .offset(
+                                            x = ((animatedY - currentPosition.y) * 100).dp,
+                                            y = ((animatedX - currentPosition.x) * 100).dp
+                                        )
                                         .offset(y = (-35).dp),
                                     contentAlignment = Alignment.Center
                                 ) {

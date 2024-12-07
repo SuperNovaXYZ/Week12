@@ -27,7 +27,7 @@ fun PlayerCharacter(
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
                 animation = tween(
-                    durationMillis = 1500,
+                    durationMillis = 500,
                     easing = LinearEasing
                 ),
                 repeatMode = RepeatMode.Restart
@@ -38,11 +38,11 @@ fun PlayerCharacter(
         remember { mutableStateOf(0f) }
     }
 
-    // Add bouncing animation when idle
+    // Bounce animation
     val infiniteTransition = rememberInfiniteTransition(label = "bounce")
     val bounce by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = -8f,  // Negative value to bounce upward
+        targetValue = -8f,
         animationSpec = infiniteRepeatable(
             animation = tween(
                 durationMillis = 1000,
@@ -54,15 +54,15 @@ fun PlayerCharacter(
     )
 
     Box(
-        modifier = modifier.offset(y = if (!isMoving) bounce.dp else 0.dp),  // Apply bounce only when not moving
+        modifier = modifier.offset(y = if (!isMoving) bounce.dp else 0.dp),
         contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(R.drawable.ic_player),
             contentDescription = "Player",
             modifier = Modifier
-                .rotate(rotation)  // Apply spinning animation only when moving
-                .rotate(  // Always apply direction-based rotation
+                .rotate(rotation)
+                .rotate(
                     when (direction) {
                         Direction.UP -> 270f
                         Direction.RIGHT -> 0f
