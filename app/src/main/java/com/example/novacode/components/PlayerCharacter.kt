@@ -19,7 +19,6 @@ fun PlayerCharacter(
     isMoving: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    // Create rotation animation when moving
     val rotation by if (isMoving) {
         val infiniteTransition = rememberInfiniteTransition(label = "rotate")
         infiniteTransition.animateFloat(
@@ -38,7 +37,6 @@ fun PlayerCharacter(
         remember { mutableStateOf(0f) }
     }
 
-    // Bounce animation
     val infiniteTransition = rememberInfiniteTransition(label = "bounce")
     val bounce by infiniteTransition.animateFloat(
         initialValue = 0f,

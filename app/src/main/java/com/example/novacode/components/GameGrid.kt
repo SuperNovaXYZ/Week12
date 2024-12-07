@@ -56,6 +56,11 @@ fun GameGrid(
         label = "positionY"
     )
 
+    val characterKey = remember { mutableStateOf(0) }
+    LaunchedEffect(currentPosition) {
+        characterKey.value = characterKey.value + 1
+    }
+
     Box(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -161,7 +166,7 @@ fun GameGrid(
                                 }
                             }
 
-                            // Player character
+                            // Player character with key
                             if (rowIndex == currentPosition.x && colIndex == currentPosition.y) {
                                 Box(
                                     modifier = Modifier
@@ -173,11 +178,13 @@ fun GameGrid(
                                         .offset(y = (-35).dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    PlayerCharacter(
-                                        direction = currentDirection,
-                                        isMoving = isMoving,
-                                        modifier = Modifier.size(48.dp)
-                                    )
+                                    key(characterKey.value) {
+                                        PlayerCharacter(
+                                            direction = currentDirection,
+                                            isMoving = isMoving,
+                                            modifier = Modifier.size(48.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
