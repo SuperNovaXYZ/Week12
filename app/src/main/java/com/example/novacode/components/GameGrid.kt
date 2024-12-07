@@ -173,9 +173,8 @@ fun GameGrid(
                                         .fillMaxSize()
                                         .offset(
                                             x = ((animatedY - currentPosition.y) * 100).dp,
-                                            y = ((animatedX - currentPosition.x) * 100).dp
-                                        )
-                                        .offset(y = (-35).dp),
+                                            y = ((animatedX - currentPosition.x) * 100 - 35).dp
+                                        ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     key(characterKey.value) {
