@@ -44,7 +44,7 @@ fun GameGrid(
     val animatedPosition by animateOffsetAsState(
         targetValue = Offset(currentPosition.x.toFloat(), currentPosition.y.toFloat()),
         animationSpec = tween(
-            durationMillis = 500,
+            durationMillis = 1000,
             easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
         ),
         label = "position"
